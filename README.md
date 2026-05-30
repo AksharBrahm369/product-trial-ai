@@ -93,7 +93,9 @@ AI image generation often takes **15–60 seconds**. On the **free** plan, both 
 
 ## Deploy on Netlify (all-in-one)
 
-See **[NETLIFY-DEPLOY.md](./NETLIFY-DEPLOY.md)** — connect GitHub, add `OPENAI_API_KEY`, deploy.
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/AksharBrahm369/product-trial-ai)
+
+Or follow **[NETLIFY-SETUP.md](./NETLIFY-SETUP.md)** — add `OPENAI_API_KEY` when prompted, then deploy.
 
 ---
 
