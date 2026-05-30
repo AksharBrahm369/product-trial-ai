@@ -91,7 +91,13 @@ AI image generation often takes **15–60 seconds**. On the **free** plan, both 
 
 ---
 
-## Deploy for FREE (Netlify + Render) — recommended
+## Deploy on Netlify (all-in-one)
+
+See **[NETLIFY-DEPLOY.md](./NETLIFY-DEPLOY.md)** — connect GitHub, add `OPENAI_API_KEY`, deploy.
+
+---
+
+## Deploy for FREE (Netlify + Render) — if Netlify AI times out
 
 Netlify **free** cannot run this AI API reliably (10 second limit). Use:
 

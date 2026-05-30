@@ -97,12 +97,14 @@ export async function runTryOn(personFile, clothFiles) {
     )
   );
 
+  const onNetlify = Boolean(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
   const result = await client.images.edit({
     model,
     image: [personUpload, ...clothUploads],
     prompt: buildTryOnPrompt(clothFiles.length),
-    size: "1024x1024",
-    quality: "medium",
+    size: onNetlify ? "512x512" : "1024x1024",
+    quality: onNetlify ? "low" : "medium",
     n: 1,
   });
 

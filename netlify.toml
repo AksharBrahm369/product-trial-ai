@@ -1,13 +1,47 @@
-# FREE Netlify deploy: frontend only (no serverless functions).
-# The API runs on Render (free). Set VITE_API_URL in Netlify env vars.
-# See DEPLOY-FREE.md for step-by-step instructions.
+# Netlify: React site + serverless API (all on one domain)
 
 [build]
-  command = "npm install --prefix client && npm run build --prefix client"
+  command = "npm install && npm install --prefix client && npm run build --prefix client"
   publish = "client/dist"
+  functions = "netlify/functions"
 
 [build.environment]
   NODE_VERSION = "20"
+  NETLIFY = "true"
+
+[functions]
+  node_bundler = "esbuild"
+  included_files = ["shared/**"]
+
+[functions."try-on"]
+  timeout = 10
+
+[functions."try-on-background"]
+  timeout = 900
+
+[[redirects]]
+  from = "/api/try-on"
+  to = "/.netlify/functions/try-on"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/try-on-start"
+  to = "/.netlify/functions/try-on-start"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/try-on-status"
+  to = "/.netlify/functions/try-on-status"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/health"
+  status = 200
+  force = true
 
 [[redirects]]
   from = "/*"

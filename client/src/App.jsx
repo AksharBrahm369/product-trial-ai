@@ -6,7 +6,23 @@ import TryOnHistory from "./components/TryOnHistory.jsx";
 import { useSimulatedProgress } from "./hooks/useSimulatedProgress.js";
 import { useTryOnHistory } from "./hooks/useTryOnHistory.js";
 import { apiUrl, parseJsonResponse } from "./api.js";
+import { filesToPayload } from "./lib/uploadImages.js";
 import "./App.css";
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function pollTryOnResult(jobId) {
+  for (let i = 0; i < 90; i++) {
+    await sleep(2000);
+    const res = await fetch(apiUrl(`/api/try-on-status?jobId=${jobId}`));
+    const data = await parseJsonResponse(res);
+    if (data.status === "complete") return data;
+    if (data.status === "error") {
+      throw new Error(data.error || "Try-on failed");
+    }
+  }
+  throw new Error("Timed out waiting for AI result. Try again with smaller images.");
+}
 
 export default function App() {
   const [personFile, setPersonFile] = useState(null);
@@ -27,7 +43,7 @@ export default function App() {
         if (!data.hasApiKey) {
           setNetworkWarning(
             import.meta.env.PROD
-              ? "OpenAI API key is missing. In Vercel/Netlify: add OPENAI_API_KEY in environment variables, then redeploy."
+              ? "OpenAI API key is missing. In Netlify: Site settings → Environment variables → add OPENAI_API_KEY, then redeploy."
               : "OpenAI API key is missing. Add OPENAI_API_KEY to your .env file and restart the server."
           );
         } else if (!data.canReachOpenAI) {
@@ -40,17 +56,11 @@ export default function App() {
         }
       })
       .catch((err) => {
-        if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
-          setNetworkWarning(
-            "VITE_API_URL is not set on Netlify. Add your Render API URL (e.g. https://your-app.onrender.com) in Netlify → Environment variables, then redeploy. See DEPLOY-FREE.md."
-          );
-        } else {
-          setNetworkWarning(
-            import.meta.env.PROD
-              ? err.message
-              : "Cannot reach the backend. Run npm run dev and open http://localhost:5173"
-          );
-        }
+        setNetworkWarning(
+          import.meta.env.PROD
+            ? err.message
+            : "Cannot reach the backend. Run npm run dev and open http://localhost:5173"
+        );
       });
   }, []);
 
@@ -64,26 +74,59 @@ export default function App() {
     setResultImage(null);
     reset();
 
-    const formData = new FormData();
-    formData.append("personImage", personFile);
-    clothFiles.forEach((file) => formData.append("clothImages", file));
-
     try {
-      const res = await fetch(apiUrl("/api/try-on"), {
-        method: "POST",
-        body: formData,
-      });
+      const useNetlifyBackground =
+        import.meta.env.PROD && !import.meta.env.VITE_API_URL;
 
-      const data = await parseJsonResponse(res);
+      let imageResult;
 
-      if (!res.ok) {
-        throw new Error(data.error || `Request failed (${res.status})`);
+      if (useNetlifyBackground) {
+        const payload = await filesToPayload(personFile, clothFiles);
+        const startRes = await fetch(apiUrl("/api/try-on-start"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const startData = await parseJsonResponse(startRes);
+        if (!startRes.ok && startRes.status !== 202) {
+          throw new Error(startData.error || `Request failed (${startRes.status})`);
+        }
+        const done = await pollTryOnResult(startData.jobId);
+        imageResult = done.image;
+      } else {
+        const formData = new FormData();
+        formData.append("personImage", personFile);
+        clothFiles.forEach((file) => formData.append("clothImages", file));
+
+        const res = await fetch(apiUrl("/api/try-on"), {
+          method: "POST",
+          body: formData,
+        });
+        const data = await parseJsonResponse(res);
+
+        if (!res.ok) {
+          if (data.useBackground && import.meta.env.PROD) {
+            const payload = await filesToPayload(personFile, clothFiles);
+            const startRes = await fetch(apiUrl("/api/try-on-start"), {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload),
+            });
+            const startData = await parseJsonResponse(startRes);
+            const done = await pollTryOnResult(startData.jobId);
+            imageResult = done.image;
+          } else {
+            throw new Error(data.error || `Request failed (${res.status})`);
+          }
+        } else {
+          imageResult = data.image;
+        }
       }
 
       complete();
-      setResultImage(data.image);
+      setResultImage(imageResult);
       addToHistory({
-        image: data.image,
+        image: imageResult,
         clothCount: clothFiles.length,
       });
     } catch (err) {
