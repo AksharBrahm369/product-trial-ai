@@ -1,0 +1,39 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0f0e0d;
+  --surface: #1a1816;
+  --surface-2: #242120;
+  --border: #2e2b28;
+  --text: #f5f0eb;
+  --muted: #9a928a;
+  --accent: #e8a87c;
+  --accent-dim: #c4895f;
+  --success: #7cb87c;
+  --error: #e07a7a;
+  --radius: 14px;
+  --shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "DM Sans", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+}

@@ -1,0 +1,15 @@
+# FREE Netlify deploy: frontend only (no serverless functions).
+# The API runs on Render (free). Set VITE_API_URL in Netlify env vars.
+# See DEPLOY-FREE.md for step-by-step instructions.
+
+[build]
+  command = "npm install --prefix client && npm run build --prefix client"
+  publish = "client/dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -1,0 +1,21 @@
+{
+  "name": "product-room-virtual-tryon",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Virtual clothing try-on with OpenAI and React",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "build": "npm run build --prefix client",
+    "start": "npm run start --prefix server"
+  },
+  "dependencies": {
+    "formidable": "^3.5.4",
+    "lambda-multipart-parser": "^1.0.1",
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

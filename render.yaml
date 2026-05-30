@@ -1,0 +1,19 @@
+# Free Render backend for the API (no 10-second limit like Netlify Functions).
+# Deploy at https://render.com — connect this repo, Render reads this file.
+
+services:
+  - type: web
+    name: product-room-api
+    runtime: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_IMAGE_MODEL
+        value: gpt-image-1-mini
+      - key: NODE_VERSION
+        value: "20"
